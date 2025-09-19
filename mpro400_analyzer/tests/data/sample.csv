@@ -1,0 +1,13 @@
+﻿Station;
+Date;12.09.25
+Time;08:57:47
+Workpiece;
+Tool;01
+Application;01
+Minimum Total Angle;-3340
+Maximum Total Angle;133
+Angle;Torque;Time
+0,00;0,10;0
+1,00;0,20;10
+2,00;1,40;20
+3,00;2,00;30

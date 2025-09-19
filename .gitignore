@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*.log
+logs/
+.env
+build/
+dist/
+*.spec
+*.zip
+*.pptx

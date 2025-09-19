@@ -1,0 +1,245 @@
+﻿* {
+  font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+  font-size: 13px;
+  color: #1c3324;
+}
+
+QMainWindow {
+  background-color: #ffffff;
+}
+
+QToolBar {
+  background-color: #ffffff;
+  border-bottom: 1px solid #cfe6d5;
+  padding: 6px 8px;
+  spacing: 6px;
+}
+
+QToolBar QToolButton {
+  background-color: #ffffff;
+  border: 1px solid #bcdac5;
+  border-radius: 8px;
+  padding: 6px 14px;
+  color: #1c3324;
+}
+
+QToolBar QToolButton:hover {
+  background-color: #f2f4f7;
+  border-color: #cbd2d8;
+}
+
+QToolBar QToolButton:pressed {
+  background-color: #e4e7ec;
+}
+
+QStatusBar {
+  background-color: #ffffff;
+  border-top: 1px solid #cfe6d5;
+}
+
+QSplitter::handle {
+  background-color: #ffffff;
+  border: 0.5px solid #d1d9de;
+  border-radius: 2px;
+}
+
+QSplitter::handle:horizontal {
+  width: 6px;
+}
+
+QSplitter::handle:vertical {
+  height: 6px;
+}
+
+#range-controls {
+  background-color: #ffffff;
+  border: 1px solid #cfe6d5;
+  border-radius: 14px;
+}
+
+#range-controls QFrame,
+#range-controls QLabel {
+  color: #1c3324;
+}
+
+QComboBox {
+  background-color: #ffffff;
+  border: 1px solid #cfe6d5;
+  border-radius: 10px;
+  padding: 0 32px 0 10px;
+  color: #1c3324;
+  height: 30px;
+}
+
+QComboBox:hover {
+  border-color: #cbd2d8;
+  background-color: #f7f8fa;
+}
+
+QComboBox:focus {
+  border: 1px solid #7bc590;
+}
+
+QComboBox::drop-down {
+  width: 26px;
+  border-left: 1px solid #cfe6d5;
+  background-color: #ffffff;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+QComboBox::down-arrow {
+  image: none;
+}
+
+QComboBox QAbstractItemView {
+  background-color: #ffffff;
+  border: 1px solid #d1d9de;
+  selection-background-color: #e8eaf1;
+  selection-color: #1c3324;
+}
+
+QDoubleSpinBox, QListWidget, QTextBrowser, QTableWidget {
+  background-color: #ffffff;
+  border: 1px solid #cfe6d5;
+  border-radius: 10px;
+  selection-background-color: #e8eaf1;
+  selection-color: #1c3324;
+}
+
+QListWidget {
+  padding: 4px;
+}
+
+#filelist-title, #meta-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1c3324;
+}
+
+#file-item {
+  background-color: #ffffff;
+  border: 1px solid rgba(99, 170, 120, 0.22);
+  border-radius: 12px;
+}
+
+#file-item:hover {
+  border-color: #7bc590;
+  background-color: #f5f5f5;
+}
+
+#file-meta {
+  color: #3d5c47;
+  font-size: 12px;
+}
+
+#file-status {
+  color: #1c3324;
+  font-size: 12px;
+}
+
+#file-status[alert="true"] {
+  color: #d45d5d;
+}
+
+QCheckBox {
+  spacing: 8px;
+  color: #1c3324;
+}
+
+QPushButton {
+  background-color: #ffffff;
+  border: 1px solid #bcdac5;
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: #1c3324;
+}
+
+QPushButton:hover {
+  background-color: #f2f4f7;
+  border-color: #cbd2d8;
+}
+
+QPushButton:pressed {
+  background-color: #e4e7ec;
+}
+
+QDialog {
+  background-color: #ffffff;
+  color: #1c3324;
+}
+
+QDialog QPushButton {
+  min-width: 80px;
+}
+
+QColorDialog {
+  background-color: #ffffff;
+  color: #1c3324;
+}
+
+QColorDialog QPushButton {
+  background-color: #ffffff;
+  border: 1px solid #bcdac5;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+QColorDialog QPushButton:hover {
+  background-color: #f2f4f7;
+  border-color: #cbd2d8;
+}
+
+NavigationToolbar2QT {
+  background-color: #ffffff;
+  border: 1px solid #d1d9de;
+  border-radius: 10px;
+  padding: 6px;
+  color: #1c3324;
+}
+
+NavigationToolbar2QT QToolButton {
+  background-color: #ffffff;
+  border: 1px solid #cdd6dc;
+  border-radius: 6px;
+  padding: 5px 10px;
+  color: #1c3324;
+  font-weight: 600;
+}
+
+NavigationToolbar2QT QToolButton:hover {
+  background-color: #f2f2f2;
+  border-color: #aeb6bc;
+}
+
+NavigationToolbar2QT QToolButton:pressed {
+  background-color: #e6e6e6;
+}
+
+NavigationToolbar2QT QToolButton:disabled {
+  background-color: #ffffff;
+  border-color: #e0e0e0;
+  color: #9aa0a6;
+}
+
+NavigationToolbar2QT QLabel {
+  color: #1c3324;
+  font-weight: 600;
+}
+
+QTableWidget::item {
+  padding: 6px;
+}
+
+QHeaderView::section {
+  background-color: #ffffff;
+  border: none;
+  padding: 6px;
+  color: #1c3324;
+}
+
+
+
+
+
+
