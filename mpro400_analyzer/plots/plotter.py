@@ -1,6 +1,7 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-from typing import Iterable
+from dataclasses import dataclass
+from typing import Callable, Iterable, List, Optional, Tuple
 
 import numpy as np
 from matplotlib import font_manager, rcParams
@@ -18,6 +19,32 @@ _KOREAN_FONT_CANDIDATES = (
     "Noto Sans CJK KR",
 )
 _FONT_INITIALIZED = False
+
+
+@dataclass
+class HoverSeriesInfo:
+    label: str
+    color: str
+    x: float
+    y: float
+
+
+@dataclass
+class HoverDetails:
+    xdata: float
+    canvas_pos: Tuple[int, int]
+    entries: List[HoverSeriesInfo]
+
+
+@dataclass
+class _SeriesSnapshot:
+    label: str
+    color: str
+    xdata: np.ndarray
+    ydata: np.ndarray
+
+
+HoverCallback = Callable[[Optional[HoverDetails]], None]
 
 
 def _configure_korean_font() -> None:
@@ -48,37 +75,66 @@ class Plotter:
         self.figure = Figure(figsize=(6, 4), dpi=100)
         self.axes = self.figure.add_subplot(111)
         self.canvas = FigureCanvasQTAgg(self.figure)
+        self.canvas.setMouseTracking(True)
+
+        self._hover_callback: Optional[HoverCallback] = None
+        self._cursor_line = None
+        self._series_snapshots: List[_SeriesSnapshot] = []
+
+        self._motion_cid = self.canvas.mpl_connect("motion_notify_event", self._on_mouse_move)
+        self._leave_cid = self.canvas.mpl_connect("figure_leave_event", self._on_mouse_leave)
+
         self._init_axes()
+        self._init_cursor_line()
 
     def widget(self) -> FigureCanvasQTAgg:
         return self.canvas
 
+    def set_hover_callback(self, callback: Optional[HoverCallback]) -> None:
+        self._hover_callback = callback
+
     def draw(self, payloads: Iterable[PlotPayload]) -> None:
         self.axes.clear()
         self._init_axes()
+        self._init_cursor_line()
+        self._series_snapshots.clear()
 
         plotted = False
 
         for payload in payloads:
             linestyle = to_matplotlib(payload.line_style)
-            if not payload.x or not payload.y:
-                self.axes.plot([], [], linestyle=linestyle, color=payload.color, label=payload.label)
-                continue
+            line_color = payload.color
 
-            alpha = 0.5 if not payload.reference_hit else 1.0
-            self.axes.plot(
+            line, = self.axes.plot(
                 payload.x,
                 payload.y,
                 linestyle=linestyle,
-                color=payload.color,
+                color=line_color,
                 linewidth=1.8,
                 label=payload.label,
-                alpha=alpha,
+                alpha=1.0 if payload.reference_hit else 0.5,
             )
-            plotted = True
+
+            xdata = np.asarray(line.get_xdata(), dtype=float)
+            ydata = np.asarray(line.get_ydata(), dtype=float)
+            mask = np.isfinite(xdata) & np.isfinite(ydata)
+            if mask.any():
+                snapshot = _SeriesSnapshot(
+                    label=payload.label,
+                    color=line_color,
+                    xdata=xdata[mask],
+                    ydata=ydata[mask],
+                )
+                self._series_snapshots.append(snapshot)
+                plotted = plotted or snapshot.xdata.size > 0
+            else:
+                self._series_snapshots.append(
+                    _SeriesSnapshot(label=payload.label, color=line_color, xdata=np.array([]), ydata=np.array([]))
+                )
 
         handles, labels = self.axes.get_legend_handles_labels()
         self._place_legend(handles, labels)
+
         if not plotted:
             self.axes.text(
                 0.5,
@@ -92,6 +148,8 @@ class Plotter:
 
         self.figure.tight_layout()
         self.canvas.draw_idle()
+        self._hide_cursor()
+        self._notify_hover(None)
 
     def save(self, path: str, dpi: int = 150) -> None:
         self.figure.savefig(path, dpi=dpi, facecolor=self.figure.get_facecolor())
@@ -108,6 +166,12 @@ class Plotter:
         self.axes.tick_params(colors="#36435a")
         self.axes.xaxis.label.set_color("#111111")
         self.axes.yaxis.label.set_color("#111111")
+
+    def _init_cursor_line(self) -> None:
+        if self._cursor_line is not None and self._cursor_line.axes is not None:
+            self._cursor_line.remove()
+        self._cursor_line = self.axes.axvline(color="#36435a", linewidth=1.2, alpha=0.7)
+        self._cursor_line.set_visible(False)
 
     def _place_legend(self, handles, labels) -> None:
         if not labels:
@@ -155,6 +219,68 @@ class Plotter:
         frame.set_facecolor("#f6f7fb")
         frame.set_edgecolor("#bdc7d6")
 
+    def _on_mouse_move(self, event) -> None:
+        if event.inaxes != self.axes or not self._series_snapshots:
+            self._hide_cursor()
+            self._notify_hover(None)
+            return
 
-__all__ = ["Plotter"]
+        if event.xdata is None:
+            self._hide_cursor()
+            self._notify_hover(None)
+            return
 
+        hover_entries: List[HoverSeriesInfo] = []
+        for snapshot in self._series_snapshots:
+            if snapshot.xdata.size == 0:
+                continue
+
+            idx = int(np.argmin(np.abs(snapshot.xdata - event.xdata)))
+            x_val = float(snapshot.xdata[idx])
+            y_val = float(snapshot.ydata[idx])
+            if not np.isfinite(x_val) or not np.isfinite(y_val):
+                continue
+            hover_entries.append(
+                HoverSeriesInfo(label=snapshot.label, color=snapshot.color, x=x_val, y=y_val)
+            )
+
+        if not hover_entries:
+            self._hide_cursor()
+            self._notify_hover(None)
+            return
+
+        aligned_x = float(event.xdata)
+        self._cursor_line.set_xdata((aligned_x, aligned_x))
+        if not self._cursor_line.get_visible():
+            self._cursor_line.set_visible(True)
+        self.canvas.draw_idle()
+
+        if event.guiEvent is not None and hasattr(event.guiEvent, "position"):
+            qt_pos = event.guiEvent.position()
+            canvas_pos = (int(qt_pos.x()), int(qt_pos.y()))
+        else:
+            canvas_height = self.canvas.height()
+            canvas_pos = (int(event.x), int(canvas_height - event.y))
+
+        details = HoverDetails(xdata=float(aligned_x), canvas_pos=canvas_pos, entries=hover_entries)
+        self._notify_hover(details)
+
+    def _on_mouse_leave(self, _event) -> None:
+        self._hide_cursor()
+        self._notify_hover(None)
+
+    def _hide_cursor(self) -> None:
+        if self._cursor_line is not None and self._cursor_line.get_visible():
+            self._cursor_line.set_visible(False)
+            self.canvas.draw_idle()
+
+    def _notify_hover(self, details: Optional[HoverDetails]) -> None:
+        if self._hover_callback is not None:
+            self._hover_callback(details)
+
+
+__all__ = [
+    "Plotter",
+    "HoverDetails",
+    "HoverSeriesInfo",
+]
